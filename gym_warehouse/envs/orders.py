@@ -1,10 +1,11 @@
 # File for determining how orders appear in the warehouse
 
-imort numpy as np
+import numpy as np
+from collections import deque
 
 
 class Orders:
-    def __init__(self,warehouse_size = (16,600),dist = "Normal",classA=(3,1),
+    def __init__(self,warehouse_size = (16,600),classA=(3,1),
     classB = (1,0.5), classC = (0,0.5), dist="exp",warehouse_order_map_file_path=None,version=1):
 
         self.__classAmean = classA[0]
@@ -17,8 +18,7 @@ class Orders:
         self.__warehouse_size = warehouse_size
 
         if warehouse_order_map_file_path is None:
-            self.__warehouse_order_class_map = make_warehouse_order_class_map(warehouse_size
-            ,version)
+            self.__warehouse_order_class_map = make_warehouse_order_class_map(warehouse_size)
         else:
             if not os.path.exists(warehouse_order_map_file_path):
                 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -29,10 +29,11 @@ class Orders:
                     raise FileExistsError("Cannot find %s." % warehouse_order_map_file_path)
             self.__warehouse_order_class_map = load_warehouse_order_class_map(warehouse_order_map_file_path)
 
+        # efficient to store orders in an array accroding to location
+        self.__orders = np.zeros(warehous_size)
 
 
-
-    def make_warehouse_order_class_map(self, warehouse_size,version):
+    def make_warehouse_order_class_map(self, warehouse_size):
         # randomly assign each spot in the warehouse to a class A.B, or C
         class_map = np.array(warehouse_size,dtype=int)
 
@@ -44,8 +45,9 @@ class Orders:
                     class_map(i,j)="B"
                 else:
                     class_map(i,j)="C"
-        file_name="default"+version
+        file_name="default"
         np.save(file_name,class_map)
+        return class_map
 
 
     def load_warehouse_order_class_map(self,warehouse_order_map_file_path):
@@ -70,7 +72,7 @@ class Orders:
                 qty = np.random.exponential(self.__classBmean)
             if order_class =="A":
                 qty = np.random.exponential(self.__classAmean)
-        elif fist == "normal":
+        elif dist == "normal":
             if order_class =="C":
                 qty = np.random.normal(self.__classCmean,self.__classCstdev)
             elif order_class =="B":
@@ -78,8 +80,12 @@ class Orders:
             if order_class =="A":
                 qty = np.random.normal(self.__classAmean,self.__classAstdev)
 
-        return x,y,qty
+        self.__orders[x][y]=qty
 
 
     def clear_order(self,x,y):
-        self.__orders[x][y] = 0
+        self.__orders[x][y]=0
+
+
+    def reset(self):
+        self.__orders=np.zeros(self.warehouse_size)
