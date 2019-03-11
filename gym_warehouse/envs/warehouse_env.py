@@ -53,7 +53,7 @@ class WarehouseEnv(gym.Env):
 
     def step(self,action):
         if isinstance(action,int):
-            self.warehouse_view.move_robot(self.ACTION[action]):
+            self.warehouse_view.move_robot(self.ACTION[action])
         else:
             self.warehouse_view.move_robot(action)
 
