@@ -1,7 +1,7 @@
 import pygame
 import random
 import numpy as np
-from orders import Orders
+from gym_warehouse.envs.orders import Orders
 import os
 
 class WarehouseView2D:
@@ -11,7 +11,7 @@ class WarehouseView2D:
 
         # PyGame configurations
         pygame.init()
-        pygame.display.set_caption(maze_name)
+        pygame.display.set_caption(warehouse_name)
         self.clock = pygame.time.Clock()
         self.__game_over = False
 
@@ -19,7 +19,7 @@ class WarehouseView2D:
         if warehouse_file_path is None:
             self.__warehouse = Warehouse(warehouse_size=warehouse_size)
         else:
-            if not os.path.exists(maze_file_path):
+            if not os.path.exists(warehouse_file_path):
                 dir_path = os.path.dirname(os.path.abspath(__file__))
                 rel_path = os.path.join(dir_path, "warehouse_samples", warehouse_file_path)
                 if os.path.exists(rel_path):
@@ -30,17 +30,17 @@ class WarehouseView2D:
             warehouse_file_path))
 
         # Make Orders object
-        self.__orders = Orders(warehouse_size=warehouse_size)
+        self.Orders = Orders(warehouse_size=warehouse_size)
 
 
         self.warehouse_size = self.__warehouse.warehouse_size
 
         # to show the right and bottom border
         self.screen = pygame.display.set_mode(screen_size)
-        self.__screen_size = tuple(map(sum,zip(screen_size,(-1,-1)))
+        self.__screen_size = tuple(map(sum,zip(screen_size,(-1,-1))))
 
         # create starting point, and charge station
-        self.__entrance = np.array(7,0).astype(dtype=int)
+        self.__entrance = np.array([7,0],dtype=int)
 
         # create robot
         self.__robot = self.entrance
@@ -53,14 +53,14 @@ class WarehouseView2D:
         self.background.fill((255,255,255))
 
         # create a layer for the warehouse
-        self.warehouse_layer = pygame.Surgace(self.screen.get_size()).convert_alpha()
+        self.warehouse_layer = pygame.Surface(self.screen.get_size()).convert_alpha()
         self.warehouse_layer.fill((0,0,0,0,))
 
         # ... draw warehouse, robot, entrance
         self.__draw_warehouse()
         self.__draw_robot()
         self.__draw_entrance()
-        self.__draw_orders()
+        # self.__draw_order()
 
 
 
@@ -91,28 +91,36 @@ class WarehouseView2D:
         if self.__warehouse.is_open(self.__robot,dir):
 
             # update the drawing
-            self.__draw_robot(transparancy=0)
+            self.__draw_robot(transparency=0)
 
             # move the robot
             self.__robot += np.array(self.__warehouse.COMPASS[dir])
 
             # if on an order, pick up
-            if self.__orders[self.robot[0]][self.robot[1]]:
+            if self.Orders.get_order_qty(self.robot[0],self.robot[1]):
                 self.__load = True
+                self.Orders.clear_order(self.robot[0],self.robot[1])
 
             # MAKE WAY TO 'PICK UP' OBJECT
-            self.__draw_robot(transparancy=255)
+            self.__draw_robot(transparency=255)
 
-    def get_orders(self):
+    def is_loaded(self):
+        return self.__load
+
+    def load_robot(self):
+        self.__load = True
+
+    def get_order(self):
         # Get orders randomly
 
-        self.__orders.new_order()
+        x,y = self.Orders.new_order()
+        self.__draw_order(x,y)
 
 
     def reset_robot(self):
-        self.__draw_robot(transparancy=0)
+        self.__draw_robot(transparency=0)
         self.__robot = self.__entrance
-        self.__draw_robot(transparancy=255)
+        self.__draw_robot(transparency=255)
 
     def __controller_update(self):
         if not self.__game_over:
@@ -126,7 +134,7 @@ class WarehouseView2D:
             # update the robot's position
             self.__draw_entrance()
             self.__draw_robot()
-            self.__draw_orders()
+            # self.get_order()
 
             # update the screen
             self.screen.blit(self.background,(0,0))
@@ -143,7 +151,7 @@ class WarehouseView2D:
 
         # draw horizontal lines
         for y in range(self.warehouse.WAREHOUSE_H + 1):
-            pygame.draw.line(self.warehouse_layer,linecolour,(0,y*self.CELL_H),
+            pygame.draw.line(self.warehouse_layer,line_colour,(0,y*self.CELL_H),
             (self.SCREEN_W,y*self.CELL_H))
 
         # drawing the vertical lines
@@ -151,29 +159,29 @@ class WarehouseView2D:
             pygame.draw.line(self.warehouse_layer, line_colour, (x * self.CELL_W, 0),
                              (x * self.CELL_W, self.SCREEN_H))
 
-     def __draw_robot(self, colout=(0,0,150),transparency=255):
-         x = int(self.__robot[0]*self.CELL_W + self.CELL_W * 0.5 + 0.5)
-         y = int(self.))robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
-         r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
+    def __draw_robot(self, colour=(0,0,150),transparency=255):
+        x = int(self.__robot[0]*self.CELL_W + self.CELL_W * 0.5 + 0.5)
+        y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
+        r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
 
-         pygame.draw.circle(self.maze_layer,colour + (transparency,), (x,y), r)
+        pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
 
-    def __draw_entrance(self,colour=(0,0,150),transparancy = 235):
+    def __draw_entrance(self,colour=(0,0,150),transparency = 235):
         self.__colour_cell(self.entrance,colour=colour,transparency=transparency)
 
 
-    def __draw_orders(self, transparency=160):
-        self.__colour_cell(self.orders,colour=colour, transparancy=transparency)
+    def __draw_order(self,x,y,colour = (14,50,255),transparency=160):
+        self.__colour_cell((x,y),colour=colour, transparency=transparency)
 
     def __colour_cell(self,cell,colour,transparency):
-        if not (isinstance(cell,(list,tuple,np,ndarray)) and len(cell)==2):
+        if not (isinstance(cell,(list,tuple,np.ndarray)) and len(cell)==2):
             raise TypeError("cell must be a tuple, list, or numpy array of size 2")
 
         x = int(cell[0] * self.CELL_W + 0.5 + 1)
         y = int(cell[1] * self.CELL_H + 0.5 + 1)
         w = int(self.CELL_W + 0.5 - 1)
         h = int(self.CELL_H + 0.5 - 1)
-        pygame.draw.rect(self.maze_layer,colour + (transparency,), (x,y,w,h))
+        pygame.draw.rect(self.warehouse_layer,colour + (transparency,), (x,y,w,h))
 
 
     @property
@@ -210,11 +218,11 @@ class WarehouseView2D:
 
     @property
     def CELL_W(self):
-        return float(self.SCREEN_W) / float(self.maze.MAZE_W)
+        return float(self.SCREEN_W) / float(self.warehouse_size[0])
 
     @property
     def CELL_H(self):
-        return float(self.SCREEN_H) / float(self.maze.MAZE_H)
+        return float(self.SCREEN_H) / float(self.warehouse.WAREHOUSE_H)
 
 class Warehouse:
 
@@ -233,7 +241,7 @@ class Warehouse:
             if isinstance(self.warehouse_cells, (np.ndarray, np.generic)) and len(self.warehouse_cells.shape) == 2:
                 self.warehouse_size = tuple(warehouse_cells.shape)
             else:
-                reise VlueError("warehouse_cells must be a 2D NumPy array")
+                raise ValueError("warehouse_cells must be a 2D NumPy array")
         else:
 
             if not (isinstance(warehouse_size,(list,tuple)) and len(warehouse_size) ==2):
@@ -272,12 +280,24 @@ class Warehouse:
         self.warehouse_cells = np.zeros(self.warehouse_size, dtype=int)
 
     @property
-    def MAZE_W(self):
+    def WAREHOUSE_W(self):
         return int(self.warehouse_size[0])
 
     @property
-    def MAZE_H(self):
+    def WAREHOUSE_H(self):
         return int(self.warehouse_size[1])
+
+    def is_open(self, cell_id, dir):
+        # check if it would be out-of-bound
+        x1 = cell_id[0] + self.COMPASS[dir][0]
+        y1 = cell_id[1] + self.COMPASS[dir][1]
+
+        # if cell is still within bounds after the move
+        return self.is_within_bound(x1, y1)
+
+    def is_within_bound(self, x, y):
+        # true if cell is still within bounds after the move
+        return 0 <= x < self.WAREHOUSE_W and 0 <= y < self.WAREHOUSE_H
 
 
 if __name__ == "__main__":
