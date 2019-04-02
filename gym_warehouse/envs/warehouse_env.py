@@ -31,9 +31,11 @@ class WarehouseEnv(gym.Env):
         self.action_space = spaces.Discrete(2*len(self.warehouse_size))
 
         # observation is the x,y coordinate of the grid
-        low = np.zeros(len(self.warehouse_size),dtype=int)
-        high = np.array(self.warehouse_size,dtype=int) - np.ones(len(self.warehouse_size),dtype=int)
-        self.observation_space = spaces.Box(low,high)
+        # low = np.zeros(len(self.warehouse_size),dtype=int)
+        # high = np.array(self.warehouse_size,dtype=int) - np.ones(len(self.warehouse_size),dtype=int)
+
+        # self.observation_space = spaces.Box(low,high,dtype=np.float32)
+        self.observation_space = spaces.Box(low=-1.0,high=1.0,shape=(5,10),dtype=np.float32)
 
         # initial condition
         self.state = None
@@ -57,6 +59,10 @@ class WarehouseEnv(gym.Env):
         return [seed]
 
     def step(self,action):
+
+        old_position_x = self.warehouse_view.robot[0]
+        old_position_y = self.warehouse_view.robot[1]
+
         if isinstance(action,int):
             print("ACTION IS: ", action)
             self.warehouse_view.move_robot(self.ACTION[action])
@@ -76,11 +82,15 @@ class WarehouseEnv(gym.Env):
             else:
                 reward = 2
                 done = True
+        elif self.warehouse_view.is_loaded() and np.array_equal(self.warehouse_view.robot, self.warehouse_view.entrance):
+            reward = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
         else:
             reward = -0.1/(self.warehouse_size[0]*self.warehouse_size[1])
             done = False
 
-        self.state = self.warehouse_view.robot
+        self.state = self.warehouse_view.Orders.get_order_arr()
+        self.state[self.warehouse_view.robot[0],self.warehouse_view.robot[1]] = -1.0
+        self.state[old_position_x,old_position_y] = 0.0
         info ={}
 
         return self.state, reward, done, info

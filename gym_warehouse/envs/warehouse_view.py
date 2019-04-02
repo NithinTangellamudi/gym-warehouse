@@ -114,9 +114,9 @@ class WarehouseView2D:
 
     def get_order(self):
         # Get orders randomly
-
         x,y = self.Orders.new_order()
-        self.__draw_order(x,y)
+        if x != -1.0 and y != -1.0:
+            self.__draw_order(x,y)
 
 
     def reset_robot(self):

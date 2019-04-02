@@ -5,8 +5,8 @@ from collections import deque
 
 
 class Orders:
-    def __init__(self,warehouse_size = (16,600),classA=(3,1),
-    classB = (1,0.5), classC = (0,0.5), dist="exp",warehouse_order_map_file_path=None,version=1):
+    def __init__(self,warehouse_size = (16,600),classA=(0,1),
+    classB = (0,0.5), classC = (0,0.2), dist="exp",warehouse_order_map_file_path=None,version=1):
 
         self.__classAmean = classA[0]
         self.__classAstdev = classA[1]
@@ -57,33 +57,39 @@ class Orders:
 
 
 
-    def new_order(self,dist="normal"):
+    def new_order(self,dist="exp"):
         # Orders come in at specific rates
         # at each time step one new order copmes in
 
         x = int(self.__warehouse_size[0]*np.random.random_sample())
         y = int(self.__warehouse_size[1]*np.random.random_sample())
-        qty = 0
+        qty = 0.0
 
-        order_class = self.__warehouse_order_class_map[x][y]
+        if self.get_order_qty(x,y) ==0.0:
+            order_class = self.__warehouse_order_class_map[x][y]
 
-        if dist=="exp":
-            if order_class ==3:
-                qty = np.random.exponential(self.__classCmean)
-            elif order_class ==2:
-                qty = np.random.exponential(self.__classBmean)
-            if order_class ==1:
-                qty = np.random.exponential(self.__classAmean)
-        elif dist == "normal":
-            if order_class ==3:
-                qty = np.random.normal(self.__classCmean,self.__classCstdev)
-            elif order_class ==2:
-                qty = np.random.normal(self.__classBmean,self.__classBstdev)
-            if order_class ==1:
-                qty = np.random.normal(self.__classAmean,self.__classAstdev)
+            if dist=="exp":
+                if order_class ==3:
+                    qty = np.random.exponential(self.__classCmean)
+                elif order_class ==2:
+                    qty = np.random.exponential(self.__classBmean)
+                if order_class ==1:
+                    qty = np.random.exponential(self.__classAmean)
+            elif dist == "normal":
+                if order_class ==3:
+                    qty = np.random.normal(self.__classCmean,self.__classCstdev)
+                elif order_class ==2:
+                    qty = np.random.normal(self.__classBmean,self.__classBstdev)
+                if order_class ==1:
+                    qty = np.random.normal(self.__classAmean,self.__classAstdev)
+            qty=int(qty)
+            if qty>=1.0:
+                qty = 1.0
 
-        self.__orders[x,y]=self.__orders[x,y]+qty
-        return x,y
+            self.set_order(x,y)
+            return x,y
+        else:
+            return -1,-1
 
 
     def clear_order(self,x,y):
@@ -99,3 +105,9 @@ class Orders:
         if self.__orders[x][y] > 0:
             return True
         return False
+
+    def get_order_arr(self):
+        return self.__orders
+
+    def set_order(self,x,y):
+        self.__orders[x][y] =1.0
