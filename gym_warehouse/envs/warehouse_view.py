@@ -7,7 +7,7 @@ import os
 class WarehouseView2D:
 
     def __init__(self,warehouse_name="Warehouse-Default",warehouse_file_path=None,
-                warehouse_size=(16,600), screen_size=(600,600)):
+                warehouse_size=(5,10), screen_size=(600,600)):
 
         # PyGame configurations
         pygame.init()
@@ -40,7 +40,7 @@ class WarehouseView2D:
         self.__screen_size = tuple(map(sum,zip(screen_size,(-1,-1))))
 
         # create starting point, and charge station
-        self.__entrance = np.array([7,0],dtype=int)
+        self.__entrance = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
 
         # create robot
         self.__robot = self.entrance
@@ -102,7 +102,9 @@ class WarehouseView2D:
                 self.Orders.clear_order(self.robot[0],self.robot[1])
 
             # MAKE WAY TO 'PICK UP' OBJECT
-            self.__draw_robot(transparency=255)
+            # self.__draw_robot(transparency=0)
+                self.Orders.clear_order(self.robot[0],self.robot[1])
+                self.__draw_order(self.robot[0],self.robot[1],transparency=255)
 
     def is_loaded(self):
         return self.__load
@@ -159,10 +161,10 @@ class WarehouseView2D:
             pygame.draw.line(self.warehouse_layer, line_colour, (x * self.CELL_W, 0),
                              (x * self.CELL_W, self.SCREEN_H))
 
-    def __draw_robot(self, colour=(0,0,150),transparency=255):
+    def __draw_robot(self, colour=(200,20,120),transparency=255):
         x = int(self.__robot[0]*self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
-        r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
+        r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
 
         pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
 
@@ -302,6 +304,6 @@ class Warehouse:
 
 if __name__ == "__main__":
 
-    warehouse = WarehouseView2D(screen_size= (600, 600), warehouse_size=(16,600))
+    warehouse = WarehouseView2D(screen_size= (600, 600), warehouse_size=(15,600))
     warehouse.update()
     input("Enter any key to quit.")

@@ -104,4 +104,8 @@ class WarehouseEnv(gym.Env):
 class WarehouseEnvRandomDefault(WarehouseEnv):
 
     def __init__(self):
-        super(WarehouseEnvSample5x5,self).__init__()
+        super(WarehouseEnvSampleRandomDefault,self).__init__()
+
+# class WarehouseEnvSample5x5(WarehouseEnv):
+#     def __init__(self):
+#         super(WarehouseEnvSample5x5,self).__init__()
