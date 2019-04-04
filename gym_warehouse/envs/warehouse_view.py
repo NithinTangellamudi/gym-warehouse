@@ -6,6 +6,8 @@ import os
 
 class WarehouseView2D:
 
+    # entrance = (2,0)
+
     def __init__(self,warehouse_name="Warehouse-Default",warehouse_file_path=None,
                 warehouse_size=(5,10), screen_size=(600,600)):
 
@@ -43,7 +45,7 @@ class WarehouseView2D:
         self.__entrance = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
 
         # create robot
-        self.__robot = self.entrance
+        self.__robot = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
 
         # initialize load
         self.__load = False
@@ -95,27 +97,36 @@ class WarehouseView2D:
 
             # move the robot
             self.__robot += np.array(self.__warehouse.COMPASS[dir])
+            self.__entrance = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
 
             # if on an order, pick up
-            if self.Orders.get_order_qty(self.robot[0],self.robot[1]):
-                self.__load = True
-                self.Orders.clear_order(self.robot[0],self.robot[1])
+            if self.Orders.get_order_qty(self.__robot[0],self.__robot[1]) >0.0 and self.__load ==False:
+                self.pickup()
+
+
 
             # MAKE WAY TO 'PICK UP' OBJECT
             # self.__draw_robot(transparency=0)
-                self.Orders.clear_order(self.robot[0],self.robot[1])
-                self.__draw_order(self.robot[0],self.robot[1],transparency=255)
+                # self.__draw_order(self.__robot[0],self.__robot[1],transparency=255)
 
     def is_loaded(self):
         return self.__load
+
+    def pickup(self):
+        self.__load = True
+        # self.Orders.clear_order(self.__robot[0],self.__robot[1])
+        self.__reset_cell(self.__robot[0],self.__robot[1],transparency=255)
+
+    def dropoff(self):
+        self.__load = False
 
     def load_robot(self):
         self.__load = True
 
     def get_order(self):
         # Get orders randomly
-        x,y = self.Orders.new_order()
-        if x != -1.0 and y != -1.0:
+        x,y,qty = self.Orders.new_order()
+        if x != -1.0 and y != -1.0 and qty >0.0:
             self.__draw_order(x,y)
 
 
@@ -162,17 +173,19 @@ class WarehouseView2D:
                              (x * self.CELL_W, self.SCREEN_H))
 
     def __draw_robot(self, colour=(200,20,120),transparency=255):
-        x = int(self.__robot[0]*self.CELL_W + self.CELL_W * 0.5 + 0.5)
+        x = int(self.__robot[0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
 
         pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
 
     def __draw_entrance(self,colour=(0,0,150),transparency = 235):
-        self.__colour_cell(self.entrance,colour=colour,transparency=transparency)
+        self.__colour_cell(self.__entrance,colour=colour,transparency=transparency)
 
+    def __draw_order(self,x,y,colour = (14,50,255),transparency=255):
+        self.__colour_cell((x,y),colour=colour, transparency=transparency)
 
-    def __draw_order(self,x,y,colour = (14,50,255),transparency=160):
+    def __reset_cell(self,x,y,colour =(255,255,255),transparency=255):
         self.__colour_cell((x,y),colour=colour, transparency=transparency)
 
     def __colour_cell(self,cell,colour,transparency):
@@ -193,6 +206,12 @@ class WarehouseView2D:
     @property
     def robot(self):
         return self.__robot
+
+    @property
+    def loaded(self):
+        if self.__load:
+            return 1
+        return 0
 
     @property
     def entrance(self):

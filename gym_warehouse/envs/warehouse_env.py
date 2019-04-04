@@ -35,12 +35,13 @@ class WarehouseEnv(gym.Env):
         # high = np.array(self.warehouse_size,dtype=int) - np.ones(len(self.warehouse_size),dtype=int)
 
         # self.observation_space = spaces.Box(low,high,dtype=np.float32)
-        self.observation_space = spaces.Box(low=-1.0,high=1.0,shape=(5,10),dtype=np.float32)
+        self.observation_space = spaces.Box(low=-1.0,high=1.0,shape=(5,10,1),dtype=np.float32)
 
         # initial condition
         self.state = None
         self.steps_beyond_done = None
-
+        self.done = False
+        self.order = 0
         # simulation related variables
         self._seed()
         self.reset()
@@ -73,27 +74,38 @@ class WarehouseEnv(gym.Env):
 
         if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1]):
             reward = 1
-            done = False
+            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1])
+            # self.warehouse_view.pickup()
 
         elif np.array_equal(self.warehouse_view.robot, self.warehouse_view.entrance):
             if not self.warehouse_view.is_loaded():
+                # false dropoff
                 reward = -10
-                done = False
             else:
-                reward = 2
-                done = True
-        elif self.warehouse_view.is_loaded() and np.array_equal(self.warehouse_view.robot, self.warehouse_view.entrance):
-            reward = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+                # correct dropoff
+                reward = 20
+                self.warehouse_view.dropoff()
+                self.order +=1
+
+
         else:
             reward = -0.1/(self.warehouse_size[0]*self.warehouse_size[1])
-            done = False
 
-        self.state = self.warehouse_view.Orders.get_order_arr()
-        self.state[self.warehouse_view.robot[0],self.warehouse_view.robot[1]] = -1.0
-        self.state[old_position_x,old_position_y] = 0.0
+        if self.order == 1:
+            done = True
+
+        self.state = [self.warehouse_view.Orders.get_order_arr(), self.warehouse_view.loaded]
+        self.state[0][old_position_x,old_position_y] = 0.0
+        self.state[0][self.warehouse_view.robot[0],self.warehouse_view.robot[1]] = -1.0
+
         info ={}
 
-        return self.state, reward, done, info
+        print("Entrance: ",self.warehouse_view.entrance)
+        print("Robot: ",self.warehouse_view.robot)
+        print("Number of Orders Fulfilled: ",self.order)
+        print("Reward: ",reward)
+
+        return self.state, reward, self.done, info
 
     def reset(self):
         self.warehouse_view.reset_robot()

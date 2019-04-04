@@ -57,7 +57,7 @@ class Orders:
 
 
 
-    def new_order(self,dist="exp"):
+    def new_order(self,dist="test"):
         # Orders come in at specific rates
         # at each time step one new order copmes in
 
@@ -67,6 +67,18 @@ class Orders:
 
         if self.get_order_qty(x,y) ==0.0:
             order_class = self.__warehouse_order_class_map[x][y]
+
+            if dist=="test":
+                if order_class==3:
+                    if np.random.random_sample() < 0.1:
+                        qty = 1
+                if order_class==2:
+                    if np.random.random_sample() < 0.5:
+                        qty = 1
+                if order_class==1:
+                    if np.random.random_sample() < 0.99:
+                        qty = 1
+
 
             if dist=="exp":
                 if order_class ==3:
@@ -82,14 +94,11 @@ class Orders:
                     qty = np.random.normal(self.__classBmean,self.__classBstdev)
                 if order_class ==1:
                     qty = np.random.normal(self.__classAmean,self.__classAstdev)
-            qty=int(qty)
-            if qty>=1.0:
-                qty = 1.0
 
-            self.set_order(x,y)
-            return x,y
+            self.set_order(x,y,qty)
+            return x,y,qty
         else:
-            return -1,-1
+            return -1,-1,qty
 
 
     def clear_order(self,x,y):
@@ -109,5 +118,5 @@ class Orders:
     def get_order_arr(self):
         return self.__orders
 
-    def set_order(self,x,y):
-        self.__orders[x][y] =1.0
+    def set_order(self,x,y,qty):
+        self.__orders[x][y] =qty
