@@ -7,7 +7,7 @@ from gym_warehouse.envs.warehouse_view import WarehouseView2D
 class WarehouseEnv(gym.Env):
     metadata = {'render.modes':['human','rgb_array']}
 
-    ACTION=["IN","OUT","LEFT","RIGHT"]
+    ACTION=["STAY","IN","OUT","LEFT","RIGHT"]
 
     def __init__(self,warehouse_file=None,warehouse_size=None):
         self.viewer = None
@@ -28,14 +28,14 @@ class WarehouseEnv(gym.Env):
         self.warehouse_size = self.warehouse_view.warehouse_size
 
         # forward or backward in each dimension, pickup and dropoff are automatic
-        self.action_space = spaces.Discrete(2*len(self.warehouse_size))
+        self.action_space = spaces.Discrete(2*len(self.warehouse_size)+1)
 
         # observation is the x,y coordinate of the grid
         # low = np.zeros(len(self.warehouse_size),dtype=int)
         # high = np.array(self.warehouse_size,dtype=int) - np.ones(len(self.warehouse_size),dtype=int)
 
         # self.observation_space = spaces.Box(low,high,dtype=np.float32)
-        self.observation_space = spaces.Box(low=-1.0,high=1.0,shape=(5,10,1),dtype=np.float32)
+        self.observation_space = spaces.Box(low=-2.0,high=1.0,shape=(5,10,1),dtype=np.float32)
 
         # initial condition
         self.state = None
@@ -61,44 +61,94 @@ class WarehouseEnv(gym.Env):
 
     def step(self,action):
 
-        old_position_x = self.warehouse_view.robot[0]
-        old_position_y = self.warehouse_view.robot[1]
+        old_position_x_0 = self.warehouse_view.robot[0][0]
+        old_position_y_0 = self.warehouse_view.robot[0][1]
+        old_position_x_1 = self.warehouse_view.robot[1][0]
+        old_position_y_1 = self.warehouse_view.robot[1][1]
 
-        if isinstance(action,int):
-            print("ACTION IS: ", action)
-            self.warehouse_view.move_robot(self.ACTION[action])
-        else:
-            self.warehouse_view.move_robot(action)
+        old_value_0 = 0.0
+        if self.warehouse_view.Orders.get_order_arr()[old_position_x_0][old_position_y_0] == -2.0:
+            old_value_0 = 1.0
+        old_value_1 = 0.0
+        if self.warehouse_view.Orders.get_order_arr()[old_position_x_1][old_position_y_1] ==-2.0:
+            old_value_0 = 1.0
+
+        robot_0_value = -1.0
+        robot_1_value = -1.0
+
+        # if isinstance(action,int):
+        print("ACTION IS: ", action)
+        # if isinstance(action,(list,tuple,np.ndarray)):
+        #     # print("ACTION IS: ", action)
+
+        # self.warehouse_view.move_robot(self.ACTION[action])
+        old_load = self.warehouse_view.move_robot(action,self.ACTION)
+        print("Old Load: ",old_load)
+
+        # else:
+        #     self.warehouse_view.move_robot(action)
 
         self.warehouse_view.get_order()
 
-        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1]):
-            if not self.warehouse_view.is_loaded():
-                reward = 1
-                self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1])
-            # self.warehouse_view.pickup()
+        reward = [0,0]
 
-        elif np.array_equal(self.warehouse_view.robot, self.warehouse_view.entrance):
-            if not self.warehouse_view.is_loaded():
+        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and not old_load[0]:
+            print("we got here")
+            reward[0] = 1
+            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1])
+            # self.warehouse_view.pickup()
+        elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and old_load[0]:
+            reward[0] = -5
+            # old_value_0 = 1.0
+            robot_1_value = -2.0
+
+        elif np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[1]):
+            if not self.warehouse_view.is_loaded()[0]:
                 # false dropoff
-                reward = -10
+                reward[0] = -10
             else:
                 # correct dropoff
-                reward = 20
-                self.warehouse_view.dropoff()
+                reward[0] = 20
+                self.warehouse_view.dropoff(0)
+                self.order +=1
+        else:
+            reward[0] = -0.1/(self.warehouse_size[0]*self.warehouse_size[1])
+
+
+        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and not old_load[1]:
+            print("we got here")
+            reward[1] = 1
+            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1])
+            # self.warehouse_view.pickup()
+        elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and old_load[1]:
+            reward[1] = -5
+            robot_1_value = -2.0
+            # old_value_1 = 1.0
+
+        elif np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[1]):
+            if not self.warehouse_view.is_loaded()[1]:
+                # false dropoff
+                reward[1] = -10
+            else:
+                # correct dropoff
+                reward[1] = 20
+                self.warehouse_view.dropoff(1)
                 self.order +=1
 
 
         else:
-            reward = -0.1/(self.warehouse_size[0]*self.warehouse_size[1])
+            reward[1] = -0.1/(self.warehouse_size[0]*self.warehouse_size[1])
 
         if self.order == 1:
             done = True
 
-        self.state = [self.warehouse_view.Orders.get_order_arr(), self.warehouse_view.loaded]
-        self.state[0][old_position_x,old_position_y] = 0.0
-        self.state[0][self.warehouse_view.robot[0],self.warehouse_view.robot[1]] = -1.0
+        print("New Load: ",self.warehouse_view.is_loaded())
 
+        self.state = [self.warehouse_view.Orders.get_order_arr(), self.warehouse_view.loaded]
+        self.state[0][old_position_x_0,old_position_y_0] = old_value_0
+        self.state[0][old_position_x_1,old_position_y_1] = old_value_1
+        self.state[0][self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]] = robot_0_value
+        self.state[0][self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]] = robot_1_value
         info ={}
 
         print("Entrance: ",self.warehouse_view.entrance)

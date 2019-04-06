@@ -3,6 +3,7 @@ import random
 import numpy as np
 from gym_warehouse.envs.orders import Orders
 import os
+import copy
 
 class WarehouseView2D:
 
@@ -42,13 +43,14 @@ class WarehouseView2D:
         self.__screen_size = tuple(map(sum,zip(screen_size,(-1,-1))))
 
         # create starting point, and charge station
-        self.__entrance = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
-
+        self.__entrance = [np.array([int(self.warehouse_size[0]/3),0],dtype=int),
+                        np.array([int(2*self.warehouse_size[0]/3),0],dtype=int)]
         # create robot
-        self.__robot = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
+        self.__robot = [np.array([int(self.warehouse_size[0]/3),0],dtype=int),
+                        np.array([int(2*self.warehouse_size[0]/3),0],dtype=int)]
 
         # initialize load
-        self.__load = False
+        self.__load = [False,False]
 
         # create backgound
         self.background = pygame.Surface(self.screen.get_size()).convert()
@@ -85,43 +87,58 @@ class WarehouseView2D:
         except Exception:
             pass
 
-    def move_robot(self,dir):
-        if dir not in self.__warehouse.COMPASS.keys():
-            raise ValueError("dir cannot be %s. The only valid dirs are %s."
-                             % (str(dir), str(self.__warehouse.COMPASS.keys())))
+    def move_robot(self,dir,action):
+        old_load = copy.deepcopy(self.__load)
+        for d in dir:
+            if action[d] not in self.__warehouse.COMPASS.keys():
+                raise ValueError("dir cannot be %s. The only valid dirs are %s."
+                                 % (str(dir), str(self.__warehouse.COMPASS.keys())))
 
-        if self.__warehouse.is_open(self.__robot,dir):
+        if self.__warehouse.is_open(self.__robot[0],action[dir[0]]):
 
             # update the drawing
             self.__draw_robot(transparency=0)
 
             # move the robot
-            self.__robot += np.array(self.__warehouse.COMPASS[dir])
-            self.__entrance = np.array([int(self.warehouse_size[0]/2),0],dtype=int)
+            self.__robot[0] += np.array(self.__warehouse.COMPASS[action[dir[0]]])
+
+            self.__entrance = [np.array([int(self.warehouse_size[0]/3),0],dtype=int),
+                            np.array([int(2*self.warehouse_size[0]/3),0],dtype=int)]
 
             # if on an order, pick up
-            if self.Orders.get_order_qty(self.__robot[0],self.__robot[1]) >0.0 and self.__load ==False:
-                self.pickup()
+            if self.Orders.get_order_qty(self.__robot[0][0],self.__robot[0][1]) >0.0 and self.__load[0] ==False:
+                self.pickup(0)
 
+        if self.__warehouse.is_open(self.__robot[1],action[dir[1]]):
 
+            # update the drawing
+            self.__draw_robot(transparency=0)
 
-            # MAKE WAY TO 'PICK UP' OBJECT
-            # self.__draw_robot(transparency=0)
-                # self.__draw_order(self.__robot[0],self.__robot[1],transparency=255)
+            # move the robot
+            self.__robot[1] += np.array(self.__warehouse.COMPASS[action[dir[1]]])
+            self.__entrance = [np.array([int(self.warehouse_size[0]/3),0],dtype=int),
+                            np.array([int(2*self.warehouse_size[0]/3),0],dtype=int)]
+
+            # if on an order, pick up
+            if self.Orders.get_order_qty(self.__robot[1][0],self.__robot[1][1]) >0.0 and self.__load[1] ==False:
+                self.pickup(1)
+
+        return old_load
 
     def is_loaded(self):
         return self.__load
 
-    def pickup(self):
-        self.__load = True
+    def pickup(self,robot_number):
+        self.__load[robot_number] = True
+        # print(self.__load)
         # self.Orders.clear_order(self.__robot[0],self.__robot[1])
-        self.__reset_cell(self.__robot[0],self.__robot[1],transparency=255)
+        self.__reset_cell(self.__robot[robot_number][0],self.__robot[robot_number][1],transparency=255)
 
-    def dropoff(self):
-        self.__load = False
+    def dropoff(self,robot_number):
+        self.__load[robot_number] = False
 
-    def load_robot(self):
-        self.__load = True
+    def load_robot(self,robot_number):
+        self.__load[robot_number] = True
 
     def get_order(self):
         # Get orders randomly
@@ -173,14 +190,23 @@ class WarehouseView2D:
                              (x * self.CELL_W, self.SCREEN_H))
 
     def __draw_robot(self, colour=(200,20,120),transparency=255):
-        x = int(self.__robot[0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
-        y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
+        x = int(self.__robot[0][0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
+        y = int(self.__robot[0][1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
 
         pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
 
+        x = int(self.__robot[1][0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
+        y = int(self.__robot[1][1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
+        r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
+
+        pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
+
+
+
     def __draw_entrance(self,colour=(0,0,150),transparency = 235):
-        self.__colour_cell(self.__entrance,colour=colour,transparency=transparency)
+        self.__colour_cell(self.__entrance[0],colour=colour,transparency=transparency)
+        self.__colour_cell(self.__entrance[1],colour=colour,transparency=transparency)
 
     def __draw_order(self,x,y,colour = (14,50,255),transparency=255):
         self.__colour_cell((x,y),colour=colour, transparency=transparency)
@@ -248,6 +274,7 @@ class WarehouseView2D:
 class Warehouse:
 
     COMPASS = {
+        "STAY":(0,0),
         "IN":(0,1),
         "OUT":(0,-1),
         "LEFT":(-1,0),
