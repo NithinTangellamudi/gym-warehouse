@@ -73,8 +73,9 @@ class WarehouseEnv(gym.Env):
         self.warehouse_view.get_order()
 
         if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1]):
-            reward = 1
-            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1])
+            if not self.warehouse_view.is_loaded():
+                reward = 1
+                self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0],self.warehouse_view.robot[1])
             # self.warehouse_view.pickup()
 
         elif np.array_equal(self.warehouse_view.robot, self.warehouse_view.entrance):
