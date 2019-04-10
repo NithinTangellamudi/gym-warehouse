@@ -28,14 +28,15 @@ class WarehouseEnv(gym.Env):
         self.warehouse_size = self.warehouse_view.warehouse_size
 
         # forward or backward in each dimension, pickup and dropoff are automatic
-        self.action_space = spaces.Discrete(2*len(self.warehouse_size)+1)
+        # self.action_space = spaces.Discrete(2*len(self.warehouse_size)+1)
+        self.action_space = spaces.MultiDiscrete([5,5])
 
         # observation is the x,y coordinate of the grid
         # low = np.zeros(len(self.warehouse_size),dtype=int)
         # high = np.array(self.warehouse_size,dtype=int) - np.ones(len(self.warehouse_size),dtype=int)
 
         # self.observation_space = spaces.Box(low,high,dtype=np.float32)
-        self.observation_space = spaces.Box(low=-2.0,high=1.0,shape=(5,10,1),dtype=np.float32)
+        self.observation_space = spaces.Box(low=-2.0,high=1.0,shape=(5,10),dtype=np.float32)
 
         # initial condition
         self.state = None
@@ -144,17 +145,18 @@ class WarehouseEnv(gym.Env):
 
         print("New Load: ",self.warehouse_view.is_loaded())
 
-        self.state = [self.warehouse_view.Orders.get_order_arr(), self.warehouse_view.loaded]
-        self.state[0][old_position_x_0,old_position_y_0] = old_value_0
-        self.state[0][old_position_x_1,old_position_y_1] = old_value_1
-        self.state[0][self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]] = robot_0_value
-        self.state[0][self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]] = robot_1_value
+        self.state = self.warehouse_view.Orders.get_order_arr()
+        self.state[old_position_x_0][old_position_y_0] = old_value_0
+        self.state[old_position_x_1][old_position_y_1] = old_value_1
+        self.state[self.warehouse_view.robot[0][0]][self.warehouse_view.robot[0][1]] = robot_0_value
+        self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info ={}
 
         print("Entrance: ",self.warehouse_view.entrance)
         print("Robot: ",self.warehouse_view.robot)
         print("Number of Orders Fulfilled: ",self.order)
         print("Reward: ",reward)
+        print("Self.is_loaded : ",self.warehouse_view.is_loaded())
 
         return self.state, reward, self.done, info
 

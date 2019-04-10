@@ -1,4 +1,5 @@
 README.md
+setup.py
 gym_warehouse.egg-info/PKG-INFO
 gym_warehouse.egg-info/SOURCES.txt
 gym_warehouse.egg-info/dependency_links.txt
