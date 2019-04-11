@@ -94,7 +94,7 @@ class WarehouseView2D:
                 raise ValueError("dir cannot be %s. The only valid dirs are %s."
                                  % (str(dir), str(self.__warehouse.COMPASS.keys())))
 
-        if self.__warehouse.is_open(self.__robot[0],action[dir[0]]):
+        if self.__warehouse.is_open(self.__robot[0],action[dir[0]],self.__robot[1]):
 
             # update the drawing
             self.__draw_robot(transparency=0)
@@ -109,7 +109,7 @@ class WarehouseView2D:
             if self.Orders.get_order_qty(self.__robot[0][0],self.__robot[0][1]) >0.0 and self.__load[0] ==False:
                 self.pickup(0)
 
-        if self.__warehouse.is_open(self.__robot[1],action[dir[1]]):
+        if self.__warehouse.is_open(self.__robot[1],action[dir[1]],self.__robot[0]):
 
             # update the drawing
             self.__draw_robot(transparency=0)
@@ -335,13 +335,16 @@ class Warehouse:
     def WAREHOUSE_H(self):
         return int(self.warehouse_size[1])
 
-    def is_open(self, cell_id, dir):
+    def is_open(self, cell_id, dir,other_robot_cell_id):
         # check if it would be out-of-bound
         x1 = cell_id[0] + self.COMPASS[dir][0]
         y1 = cell_id[1] + self.COMPASS[dir][1]
 
         # if cell is still within bounds after the move
-        return self.is_within_bound(x1, y1)
+        if x1 == other_robot_cell_id[0] and y1 == other_robot_cell_id[1]:
+            return False
+        else:
+            return self.is_within_bound(x1, y1)
 
     def is_within_bound(self, x, y):
         # true if cell is still within bounds after the move
