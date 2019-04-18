@@ -6,7 +6,7 @@ from collections import deque
 
 class Orders:
     def __init__(self,warehouse_size = (16,600),classA=(0,1),
-    classB = (0,0.5), classC = (0,0.2), dist="exp",warehouse_order_map_file_path=None,version=1):
+    classB = (0,0.5), classC = (0,0.1), dist="exp",warehouse_order_map_file_path=None,version=1):
 
         self.__classAmean = classA[0]
         self.__classAstdev = classA[1]
@@ -41,9 +41,9 @@ class Orders:
 
         for i in range(warehouse_size[0]):
             for j in range(warehouse_size[1]):
-                if np.random.random_sample()< 0.05:
+                if np.random.random_sample()< 0.01:
                     class_map[i][j]=1
-                elif np.random.random_sample()<0.20:
+                elif np.random.random_sample()<0.05:
                     class_map[i][j]=2
                 else:
                     class_map[i][j]=3
