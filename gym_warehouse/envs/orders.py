@@ -41,9 +41,9 @@ class Orders:
 
         for i in range(warehouse_size[0]):
             for j in range(warehouse_size[1]):
-                if np.random.random_sample()< 0.01:
+                if np.random.random_sample()< 0.05:
                     class_map[i][j]=1
-                elif np.random.random_sample()<0.05:
+                elif np.random.random_sample()<0.20:
                     class_map[i][j]=2
                 else:
                     class_map[i][j]=3
@@ -70,13 +70,13 @@ class Orders:
 
             if dist=="test":
                 if order_class==3:
-                    if np.random.random_sample() < 0.1:
+                    if np.random.random_sample() < 0.01:
                         qty = 1
                 if order_class==2:
-                    if np.random.random_sample() < 0.5:
+                    if np.random.random_sample() < 0.05:
                         qty = 1
                 if order_class==1:
-                    if np.random.random_sample() < 0.99:
+                    if np.random.random_sample() < 0.1:
                         qty = 1
 
 
