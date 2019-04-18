@@ -161,9 +161,9 @@ class WarehouseEnv(gym.Env):
 
         self.all_rewards += reward[0]+reward[1]
 
-        if self.steps> 650000:
+        if self.steps> 100000:
             self.done = True
-        if self.steps > 200000 and self.all_rewards < 0.0:
+        if self.steps > 20000 and self.all_rewards < 0.0:
             self.done = True
         # if self.steps > 20000.0:
         #     print("STEPS: ",self.steps)
@@ -191,10 +191,13 @@ class WarehouseEnv(gym.Env):
 
     def reset(self):
         self.warehouse_view.reset_robot()
-        self.state = np.zeros(2)
+        self.warehouse_view.Orders.reset()
+        self.state = copy.deepcopy(self.warehouse_view.Orders.get_order_arr())
+        self.state[self.warehouse_view.entrance[0][0]][self.warehouse_view.entrance[0][1]] = -1
+        self.state[self.warehouse_view.entrance[1][0]][self.warehouse_view.entrance[1][1]] = -1
         self.steps_beyond_done = None
         self.done = False
-        self.warehouse_view.Orders.reset()
+
         self.all_rewards = 0
         return self.state
 
