@@ -31,6 +31,7 @@ class Orders:
 
         # efficient to store orders in an array accroding to location
         self.__orders = np.zeros(warehouse_size)
+        self.num_orders = 0
 
 
     def make_warehouse_order_class_map(self, warehouse_size):
@@ -69,14 +70,6 @@ class Orders:
         qty = 0.0
 
         if [x,y]==[1,0] or [x,y]==[3,0]:
-            print("---------------------------")
-            print("---------------------------")
-            print("---------------------------")
-            print("---------------------------")
-            print("ORDER TRIED TO BE PLACED ON ENTRANCE")
-            print("---------------------------")
-            print("---------------------------")
-            print("---------------------------")
             return -1,-1,qty
 
         elif self.get_order_qty(x,y) ==0.0:
@@ -117,6 +110,7 @@ class Orders:
 
     def clear_order(self,x,y):
         self.__orders[x][y]=0
+        self.num_orders-=1
 
     def reset(self):
         self.__orders=np.zeros(self.__warehouse_size)
@@ -134,3 +128,4 @@ class Orders:
 
     def set_order(self,x,y,qty):
         self.__orders[x][y] =qty
+        self.num_orders+=qty
