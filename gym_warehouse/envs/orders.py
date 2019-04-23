@@ -39,8 +39,8 @@ class Orders:
 
         print("SHAPE OF CLASS MAP: ",class_map.shape)
 
-        class_map[0,1]=0
-        class_map[0,3]=0
+        class_map[1,0]=0
+        class_map[3,0]=0
 
         for i in range(warehouse_size[0]):
             for j in range(warehouse_size[1]):
@@ -68,7 +68,10 @@ class Orders:
         y = int(self.__warehouse_size[1]*np.random.random_sample())
         qty = 0.0
 
-        if self.get_order_qty(x,y) ==0.0:
+        if [x,y]==[1,0] or [x,y]==[3,0]:
+            return -1,-1,qty
+
+        elif self.get_order_qty(x,y) ==0.0:
             order_class = self.__warehouse_order_class_map[x][y]
 
             if dist=="test":
@@ -83,7 +86,7 @@ class Orders:
                         qty = 1
 
 
-            if dist=="exp":
+            elif dist=="exp":
                 if order_class ==3:
                     qty = np.random.exponential(self.__classCmean)
                 elif order_class ==2:
