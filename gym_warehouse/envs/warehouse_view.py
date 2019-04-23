@@ -143,7 +143,7 @@ class WarehouseView2D:
     def get_order(self):
         # Get orders randomly
         x,y,qty = self.Orders.new_order()
-        if x != -1.0 and y != -1.0 and qty >0.0:
+        if x != -1 and y != -1 and qty >0.0:
             self.__draw_order(x,y)
 
 
