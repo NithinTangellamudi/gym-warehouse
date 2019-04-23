@@ -197,8 +197,10 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.entrance[1][0]][self.warehouse_view.entrance[1][1]] = -1
         self.steps_beyond_done = None
         self.done = False
+        print("All Rewards from ENV: ",self.all_rewards)
 
         self.all_rewards = 0
+        self.steps = 0
         return self.state
 
     def is_game_over(self):

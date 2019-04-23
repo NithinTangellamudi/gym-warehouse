@@ -39,6 +39,9 @@ class Orders:
 
         print("SHAPE OF CLASS MAP: ",class_map.shape)
 
+        class_map[0,1]=0
+        class_map[0,3]=0
+
         for i in range(warehouse_size[0]):
             for j in range(warehouse_size[1]):
                 if np.random.random_sample()< 0.05:
