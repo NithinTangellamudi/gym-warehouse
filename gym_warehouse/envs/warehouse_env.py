@@ -43,9 +43,10 @@ class WarehouseEnv(gym.Env):
         self.state = None
         self.steps_beyond_done = None
         self.done = False
-        self.order = 0
+        self.orders_fulfilled = [0,0]
         self.steps = 0
         self.all_rewards = 0
+        self.distance = [0,0]
         # simulation related variables
         self._seed()
         self.reset()
@@ -85,6 +86,12 @@ class WarehouseEnv(gym.Env):
         self.warehouse_view.get_order()
 
         # self.warehouse_view.move_robot(self.ACTION[action])
+        if action[0] is not 0:
+            self.distance[0]+=1
+        if action[1] is not 0:
+            self.distance[1]+=1
+
+
         old_load = self.warehouse_view.move_robot(action,self.ACTION)
         # print("Old Load: ",old_load)
         # print("Order Array: ",self.warehouse_view.Orders.get_order_arr())
@@ -116,12 +123,13 @@ class WarehouseEnv(gym.Env):
         elif np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[1]):
             if not self.warehouse_view.is_loaded()[0]:
                 # false dropoff
-                reward[0] = 0
+                # reward[0] = 0
+                pass
             else:
                 # correct dropoff
                 reward[0] = 1
                 self.warehouse_view.dropoff(0)
-                self.order +=1
+                self.orders_fulfilled[0] +=1
 
         elif old_load[0]:
             reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
@@ -144,13 +152,14 @@ class WarehouseEnv(gym.Env):
 
         elif np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[1]):
             if not self.warehouse_view.is_loaded()[1]:
+                pass
                 # false dropoff
-                reward[1] = 0
+                # reward[1] = 0
             else:
                 # correct dropoff
-                reward[1] = 1
+                # reward[1] = 1
                 self.warehouse_view.dropoff(1)
-                self.order +=1
+                self.orders_fulfilled[1] +=1
 
         elif old_load[1]:
             reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
@@ -158,6 +167,10 @@ class WarehouseEnv(gym.Env):
 
         else:
             reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+
+        reward[0]=self.get_reward_1(0)
+        reward[1]=self.get_reward_1(1)
+        # print("Reward: ",reward)
 
         self.all_rewards += reward[0]+reward[1]
 
@@ -180,6 +193,7 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info = {}
         # info = self.warehouse_view.update("human")
+        info = self.distance
 
         # print("Entrance: ",self.warehouse_view.entrance)
         # print("Robot: ",self.warehouse_view.robot)
@@ -197,8 +211,10 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.entrance[1][0]][self.warehouse_view.entrance[1][1]] = -1
         self.steps_beyond_done = None
         self.done = False
-
         self.all_rewards = 0
+        self.steps = 0
+        self.distance = [0,0]
+        self.orders_fulfilled = [0,0]
         return self.state
 
     def is_game_over(self):
@@ -208,6 +224,33 @@ class WarehouseEnv(gym.Env):
         if close:
             self.warehouse_view.quit_game()
         return self.warehouse_view.update(mode)
+
+    def get_num_orders_in_system(self):
+        return self.warehouse_view.Orders.num_orders
+
+
+    def get_reward_1(self,robot_number):
+        if robot_number==0:
+            other_robot=1
+        else:
+            other_robot=0
+        return self.orders_fulfilled[robot_number] - abs(self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot]) - abs(self.distance[robot_number]-self.distance[other_robot])
+
+    def get_reward_2(self,robot_number):
+        if robot_number==0:
+            other_robot=1
+        else:
+            other_robot=0
+        return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
+
+    def get_reward_3(self,robot_number):
+        if robot_number==0:
+            other_robot=1
+        else:
+            other_robot=0
+        return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
+
+
 
 class WarehouseEnvRandomDefault(WarehouseEnv):
 

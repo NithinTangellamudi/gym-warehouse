@@ -31,6 +31,7 @@ class Orders:
 
         # efficient to store orders in an array accroding to location
         self.__orders = np.zeros(warehouse_size)
+        self.num_orders = 0
 
 
     def make_warehouse_order_class_map(self, warehouse_size):
@@ -38,6 +39,9 @@ class Orders:
         class_map = np.zeros(warehouse_size,dtype=int)
 
         print("SHAPE OF CLASS MAP: ",class_map.shape)
+
+        class_map[1,0]=0
+        class_map[3,0]=0
 
         for i in range(warehouse_size[0]):
             for j in range(warehouse_size[1]):
@@ -65,7 +69,10 @@ class Orders:
         y = int(self.__warehouse_size[1]*np.random.random_sample())
         qty = 0.0
 
-        if self.get_order_qty(x,y) ==0.0:
+        if [x,y]==[1,0] or [x,y]==[3,0]:
+            return -1,-1,qty
+
+        elif self.get_order_qty(x,y) ==0.0:
             order_class = self.__warehouse_order_class_map[x][y]
 
             if dist=="test":
@@ -80,7 +87,7 @@ class Orders:
                         qty = 1
 
 
-            if dist=="exp":
+            elif dist=="exp":
                 if order_class ==3:
                     qty = np.random.exponential(self.__classCmean)
                 elif order_class ==2:
@@ -103,6 +110,7 @@ class Orders:
 
     def clear_order(self,x,y):
         self.__orders[x][y]=0
+        self.num_orders-=1
 
     def reset(self):
         self.__orders=np.zeros(self.__warehouse_size)
@@ -120,3 +128,4 @@ class Orders:
 
     def set_order(self,x,y,qty):
         self.__orders[x][y] =qty
+        self.num_orders+=qty
