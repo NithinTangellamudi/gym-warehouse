@@ -4,6 +4,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 from gym_warehouse.envs.warehouse_view import WarehouseView2D
 import copy
+import math
 
 class WarehouseEnv(gym.Env):
     metadata = {'render.modes':['human','rgb_array']}
@@ -110,29 +111,32 @@ class WarehouseEnv(gym.Env):
 
         reward = [0,0]
 
+        # check if robot is picking up an order
+
         if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and not old_load[0]:
-            reward[0] = 1
+            reward[0] = 0.5
             robot_0_value = 2.0
             self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1])
             # self.warehouse_view.pickup()
         elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and old_load[0]:
-            reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+            # reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
             # old_value_0 = 1.0
             robot_0_value = -2.0
 
         elif np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[1]):
             if not self.warehouse_view.is_loaded()[0]:
                 # false dropoff
-                # reward[0] = 0
+                reward[0] = 0.01
                 pass
             else:
                 # correct dropoff
-                reward[0] = 1
+                reward[0] += 1
+                reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
                 self.warehouse_view.dropoff(0)
                 self.orders_fulfilled[0] +=1
 
         elif old_load[0]:
-            reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+            reward[0] = 0.01
             robot_0_value = 2.0
 
 
@@ -141,12 +145,12 @@ class WarehouseEnv(gym.Env):
 
 
         if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and not old_load[1]:
-            reward[1] = 1
+            reward[1] = 0.5
             self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1])
             robot_1_value = 2.0
             # self.warehouse_view.pickup()
         elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and old_load[1]:
-            reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+            # reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
             robot_1_value = -2.0
             # old_value_1 = 1.0
 
@@ -154,34 +158,34 @@ class WarehouseEnv(gym.Env):
             if not self.warehouse_view.is_loaded()[1]:
                 pass
                 # false dropoff
-                # reward[1] = 0
+                reward[1] = 0.01
             else:
                 # correct dropoff
-                # reward[1] = 1
+                reward[1] +=1
+                reward[1]-= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
                 self.warehouse_view.dropoff(1)
                 self.orders_fulfilled[1] +=1
 
         elif old_load[1]:
-            reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+            reward[1] = 0.01
             robot_1_value = 2.0
 
         else:
             reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
 
-        reward[0]=self.get_reward_1(0)
-        reward[1]=self.get_reward_1(1)
+        # reward[0]=self.get_reward_1(0)
+        # reward[1]=self.get_reward_1(1)
         # print("Reward: ",reward)
+
+
+
 
         self.all_rewards += reward[0]+reward[1]
 
-        if self.steps> 100000:
+        if self.steps> 64800:
             self.done = True
-        if self.steps > 20000 and self.all_rewards < 0.0:
+        if self.steps > 32400 and self.all_rewards < 0.0:
             self.done = True
-        # if self.steps > 20000.0:
-        #     print("STEPS: ",self.steps)
-        #     self.done = True
-        #     print("")
 
 
         # print("New Load: ",self.warehouse_view.is_loaded())
