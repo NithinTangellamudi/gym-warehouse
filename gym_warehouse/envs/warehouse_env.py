@@ -113,65 +113,65 @@ class WarehouseEnv(gym.Env):
 
         # check if robot is picking up an order
 
-        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and not old_load[0]:
-            reward[0] = 0.5
+# Robot 2
+        # If newly is_loaded
+        if self.warehouse_view.robot[0].is_loaded()[0] and not old_load:
+            reward[0]+=1
             robot_0_value = 2.0
-            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1])
-            # self.warehouse_view.pickup()
-        elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and old_load[0]:
-            # reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
-            # old_value_0 = 1.0
-            robot_0_value = -2.0
 
         elif np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[0], self.warehouse_view.entrance[1]):
             if not self.warehouse_view.is_loaded()[0]:
-                # false dropoff
-                reward[0] = 0.01
+                # sitting at base/visiting base without order
+                reward[0] += 0.05
                 pass
             else:
                 # correct dropoff
                 reward[0] += 1
-                reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
+                # reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
                 self.warehouse_view.dropoff(0)
                 self.orders_fulfilled[0] +=1
 
         elif old_load[0]:
-            reward[0] = 0.01
             robot_0_value = 2.0
 
+        if self.warehouse_view.robot[0][0].is_loaded()[0]:
+            reward[0] += math.sqrt(10.8 - math.sqrt(((self.warehouse_view.robot[0][0]-self.warehouse_view.entrance[0][0])**2)+((self.warehouse_view.robot[0][1]-self.warehouse_view.entrance[0][1])**2)))
 
-        else:
-            reward[0] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1]) and old_load[0]:
+            robot_0_value = -2.0
 
+        if action[0] is not 0:
+            reward[0] -= 1/(self.warehouse_size[0]*self.warehouse_size[1])
 
-        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and not old_load[1]:
-            reward[1] = 0.5
-            self.warehouse_view.Orders.clear_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1])
+# Robot 2
+        # If newly is_loaded
+        if self.warehouse_view.robot[1].is_loaded()[1] and not old_load:
+            reward[1]+=1
             robot_1_value = 2.0
-            # self.warehouse_view.pickup()
-        elif self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and old_load[1]:
-            # reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
-            robot_1_value = -2.0
-            # old_value_1 = 1.0
 
         elif np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[0]) or np.array_equal(self.warehouse_view.robot[1], self.warehouse_view.entrance[1]):
             if not self.warehouse_view.is_loaded()[1]:
+                # sitting at base/visiting base without order
+                reward[1] += 0.05
                 pass
-                # false dropoff
-                reward[1] = 0.01
             else:
                 # correct dropoff
-                reward[1] +=1
-                reward[1]-= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
+                reward[1] += 1
+                # reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
                 self.warehouse_view.dropoff(1)
                 self.orders_fulfilled[1] +=1
 
         elif old_load[1]:
-            reward[1] = 0.01
-            robot_1_value = 2.0
+            robot_0_value = 2.0
 
-        else:
-            reward[1] = -0.5/(self.warehouse_size[0]*self.warehouse_size[1])
+        if self.warehouse_view.robot[1].is_loaded()[1]:
+            reward[1] += math.sqrt(10.8 - math.sqrt(((self.warehouse_view.robot[1][0]-self.warehouse_view.entrance[1][0])**2)+((self.warehouse_view.robot[1][1]-self.warehouse_view.entrance[1][1])**2)))
+
+        if self.warehouse_view.Orders.on_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1]) and old_load[1]:
+            robot_0_value = -2.0
+
+        if action[1] is not 0:
+            reward[1] -= 1/(self.warehouse_size[0]*self.warehouse_size[1])
 
         # reward[0]=self.get_reward_1(0)
         # reward[1]=self.get_reward_1(1)

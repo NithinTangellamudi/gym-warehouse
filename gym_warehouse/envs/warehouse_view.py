@@ -108,6 +108,7 @@ class WarehouseView2D:
             # if on an order, pick up
             if self.Orders.get_order_qty(self.__robot[0][0],self.__robot[0][1]) >0.0 and self.__load[0] ==False:
                 self.pickup(0)
+                self.Orders.clear_order(self.warehouse_view.robot[0][0],self.warehouse_view.robot[0][1])
 
         if self.__warehouse.is_open(self.__robot[1],action[dir[1]],self.__robot[0]):
 
@@ -122,6 +123,7 @@ class WarehouseView2D:
             # if on an order, pick up
             if self.Orders.get_order_qty(self.__robot[1][0],self.__robot[1][1]) >0.0 and self.__load[1] ==False:
                 self.pickup(1)
+                self.Orders.clear_order(self.warehouse_view.robot[1][0],self.warehouse_view.robot[1][1])
 
         return old_load
 
