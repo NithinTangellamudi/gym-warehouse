@@ -197,7 +197,7 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info = {}
         # info = self.warehouse_view.update("human")
-        info = self.distance
+        info = {"distance":self.distance,"orders":self.orders_fulfilled,"image":self.warehouse_view.update("human")}
 
         # print("Entrance: ",self.warehouse_view.entrance)
         # print("Robot: ",self.warehouse_view.robot)
