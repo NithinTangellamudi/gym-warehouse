@@ -131,9 +131,9 @@ class WarehouseEnv(gym.Env):
             else:
                 # correct dropoff
                 reward[0] += 1
-                reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
                 self.warehouse_view.dropoff(0)
                 self.orders_fulfilled[0] +=1
+                reward[0] -= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
 
         elif old_load[0]:
             reward[0] = 0.01
@@ -162,9 +162,9 @@ class WarehouseEnv(gym.Env):
             else:
                 # correct dropoff
                 reward[1] +=1
-                reward[1]-= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
-                self.warehouse_view.dropoff(1)
                 self.orders_fulfilled[1] +=1
+                self.warehouse_view.dropoff(1)
+                reward[1]-= math.sqrt(0.01*abs(self.orders_fulfilled[0]-self.orders_fulfilled[1]))
 
         elif old_load[1]:
             reward[1] = 0.01
@@ -184,8 +184,8 @@ class WarehouseEnv(gym.Env):
 
         if self.steps> 64800:
             self.done = True
-        if self.steps > 32400 and self.all_rewards < 0.0:
-            self.done = True
+        # if self.steps > 32400 and self.all_rewards < 0.0:
+        #     self.done = True
 
 
         # print("New Load: ",self.warehouse_view.is_loaded())
@@ -197,7 +197,7 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info = {}
         # info = self.warehouse_view.update("human")
-        info = self.distance
+        info = {"distance":self.distance,"orders":self.orders_fulfilled}
 
         # print("Entrance: ",self.warehouse_view.entrance)
         # print("Robot: ",self.warehouse_view.robot)
@@ -208,6 +208,7 @@ class WarehouseEnv(gym.Env):
         return self.state, reward, self.done, info
 
     def reset(self):
+        print("Number of Orders Fulfilled: ",self.orders_fulfilled)
         self.warehouse_view.reset_robot()
         self.warehouse_view.Orders.reset()
         self.state = copy.deepcopy(self.warehouse_view.Orders.get_order_arr())
