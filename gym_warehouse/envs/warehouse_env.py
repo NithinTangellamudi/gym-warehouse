@@ -201,7 +201,7 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info = {}
         # info = self.warehouse_view.update("")
-        info = {"distance":self.distance,"orders":self.orders_fulfilled}
+        info = {"distance":self.distance,"orders":self.orders_fulfilled,"rewards":self.all_rewards,"image":self.warehouse_view.update("")}
 
         # print("Entrance: ",self.warehouse_view.entrance)
         # print("Robot: ",self.warehouse_view.robot)
@@ -224,7 +224,8 @@ class WarehouseEnv(gym.Env):
         self.steps = 0
         self.distance = [0,0]
         self.orders_fulfilled = [0,0]
-        return self.state
+        image = self.warehouse_view.update("")
+        return image
 
     def is_game_over(self):
         return self.warehouse_view.game_over
@@ -238,26 +239,26 @@ class WarehouseEnv(gym.Env):
         return self.warehouse_view.Orders.num_orders
 
 
-    def get_reward_1(self,robot_number):
-        if robot_number==0:
-            other_robot=1
-        else:
-            other_robot=0
-        return self.orders_fulfilled[robot_number] - abs(self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot]) - abs(self.distance[robot_number]-self.distance[other_robot])
-
-    def get_reward_2(self,robot_number):
-        if robot_number==0:
-            other_robot=1
-        else:
-            other_robot=0
-        return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
-
-    def get_reward_3(self,robot_number):
-        if robot_number==0:
-            other_robot=1
-        else:
-            other_robot=0
-        return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
+    # def get_reward_1(self,robot_number):
+    #     if robot_number==0:
+    #         other_robot=1
+    #     else:
+    #         other_robot=0
+    #     return self.orders_fulfilled[robot_number] - abs(self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot]) - abs(self.distance[robot_number]-self.distance[other_robot])
+    #
+    # def get_reward_2(self,robot_number):
+    #     if robot_number==0:
+    #         other_robot=1
+    #     else:
+    #         other_robot=0
+    #     return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
+    #
+    # def get_reward_3(self,robot_number):
+    #     if robot_number==0:
+    #         other_robot=1
+    #     else:
+    #         other_robot=0
+    #     return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
 
 
 
