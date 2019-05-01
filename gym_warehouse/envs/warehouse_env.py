@@ -212,7 +212,7 @@ class WarehouseEnv(gym.Env):
         return self.state, reward, self.done, info
 
     def reset(self):
-        print("Number of Orders Fulfilled: ",self.orders_fulfilled)
+        # print("Number of Orders Fulfilled: ",self.orders_fulfilled)
         self.warehouse_view.reset_robot()
         self.warehouse_view.Orders.reset()
         self.state = copy.deepcopy(self.warehouse_view.Orders.get_order_arr())
