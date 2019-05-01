@@ -143,6 +143,7 @@ class WarehouseView2D:
         self.__load[robot_number] = True
 
     def get_order(self):
+        print("retreiving orders ...")
         # Get orders randomly
         x,y,qty = self.Orders.new_order()
         if x != -1 and y != -1 and qty >0.0:

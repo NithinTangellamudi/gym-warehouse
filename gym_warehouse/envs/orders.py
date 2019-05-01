@@ -77,13 +77,13 @@ class Orders:
 
             if dist=="test":
                 if order_class==3:
-                    if np.random.random_sample() < 0.01:
-                        qty = 1
-                if order_class==2:
                     if np.random.random_sample() < 0.05:
                         qty = 1
-                if order_class==1:
+                if order_class==2:
                     if np.random.random_sample() < 0.1:
+                        qty = 1
+                if order_class==1:
+                    if np.random.random_sample() < 0.25:
                         qty = 1
 
 
