@@ -96,8 +96,7 @@ class WarehouseView2D:
 
         if self.__warehouse.is_open(self.__robot[0],action[dir[0]],self.__robot[1]):
 
-            # update the drawing
-            self.__draw_robot(transparency=0)
+
 
             # move the robot
             self.__robot[0] += np.array(self.__warehouse.COMPASS[action[dir[0]]])
@@ -110,10 +109,12 @@ class WarehouseView2D:
                 self.pickup(0)
                 self.Orders.clear_order(self.robot[0][0],self.robot[0][1])
 
-        if self.__warehouse.is_open(self.__robot[1],action[dir[1]],self.__robot[0]):
-
             # update the drawing
             self.__draw_robot(transparency=0)
+
+        if self.__warehouse.is_open(self.__robot[1],action[dir[1]],self.__robot[0]):
+
+
 
             # move the robot
             self.__robot[1] += np.array(self.__warehouse.COMPASS[action[dir[1]]])
@@ -124,6 +125,9 @@ class WarehouseView2D:
             if self.Orders.get_order_qty(self.__robot[1][0],self.__robot[1][1]) >0.0 and self.__load[1] ==False:
                 self.pickup(1)
                 self.Orders.clear_order(self.robot[1][0],self.robot[1][1])
+
+            # update the drawing
+            self.__draw_robot(transparency=0)
 
         return old_load
 
@@ -143,7 +147,6 @@ class WarehouseView2D:
         self.__load[robot_number] = True
 
     def get_order(self):
-        print("retreiving orders ...")
         # Get orders randomly
         x,y,qty = self.Orders.new_order()
         if x != -1 and y != -1 and qty >0.0:
@@ -174,6 +177,8 @@ class WarehouseView2D:
             self.screen.blit(self.warehouse_layer,(0,0))
 
             if mode == "human":
+                self.screen.blit(self.background,(0,0))
+                self.screen.blit(self.warehouse_layer,(0,0))
 
                 pygame.display.flip()
 
@@ -193,18 +198,26 @@ class WarehouseView2D:
             pygame.draw.line(self.warehouse_layer, line_colour, (x * self.CELL_W, 0),
                              (x * self.CELL_W, self.SCREEN_H))
 
-    def __draw_robot(self, colour=(200,20,120),transparency=255):
+    def __draw_robot(self, colour1=(200,20,120),colour2=(200,20,120) ,transparency=255):
+
+
+        if self.is_loaded()[0]:
+            colour1 = (107,244,66)
+
         x = int(self.__robot[0][0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[0][1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
 
-        pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
+        pygame.draw.circle(self.warehouse_layer,colour1 + (transparency,), (x,y), r)
+
+        if self.is_loaded()[1]:
+            colour2 = (107,244,66)
 
         x = int(self.__robot[1][0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[1][1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 5)
 
-        pygame.draw.circle(self.warehouse_layer,colour + (transparency,), (x,y), r)
+        pygame.draw.circle(self.warehouse_layer,colour2 + (transparency,), (x,y), r)
 
 
 

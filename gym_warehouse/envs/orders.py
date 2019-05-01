@@ -38,7 +38,7 @@ class Orders:
         # randomly assign each spot in the warehouse to a class A.B, or C
         class_map = np.zeros(warehouse_size,dtype=int)
 
-        print("SHAPE OF CLASS MAP: ",class_map.shape)
+        # print("SHAPE OF CLASS MAP: ",class_map.shape)
 
         class_map[1,0]=0
         class_map[3,0]=0

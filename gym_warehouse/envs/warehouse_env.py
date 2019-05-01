@@ -201,7 +201,7 @@ class WarehouseEnv(gym.Env):
         self.state[self.warehouse_view.robot[1][0]][self.warehouse_view.robot[1][1]] = robot_1_value
         info = {}
         # info = self.warehouse_view.update("")
-        info = {"distance":self.distance,"orders":self.orders_fulfilled,"rewards":self.all_rewards}
+        info = {"distance":self.distance,"orders":self.orders_fulfilled,"rewards":self.all_rewards,"image":self.warehouse_view.update("")}
 
         # print("Entrance: ",self.warehouse_view.entrance)
         # print("Robot: ",self.warehouse_view.robot)
@@ -224,7 +224,8 @@ class WarehouseEnv(gym.Env):
         self.steps = 0
         self.distance = [0,0]
         self.orders_fulfilled = [0,0]
-        return self.state
+        image = self.warehouse_view.update("")
+        return image
 
     def is_game_over(self):
         return self.warehouse_view.game_over
