@@ -9,7 +9,10 @@ import math
 class WarehouseEnv(gym.Env):
     metadata = {'render.modes':['human','rgb_array']}
 
-    ACTION=["STAY","IN","OUT","LEFT","RIGHT"]
+    ACTION=["NOOP","IN","OUT","LEFT","RIGHT"]
+
+
+
 
     def __init__(self,warehouse_file=None,warehouse_size=None):
         self.viewer = None
@@ -238,6 +241,37 @@ class WarehouseEnv(gym.Env):
     def get_num_orders_in_system(self):
         return self.warehouse_view.Orders.num_orders
 
+    def get_action_meanings(self):
+        return ACTION_MEANING
+
+ACTION_MEANING= {
+    0:"NOOP",
+    1:"NOOP-DOWN",
+    2:"NOOP-UP",
+    3:"NOOP-LEFT",
+    4:"NOOP-RIGHT",
+    5:"DOWN-NOOP",
+    6:"DOWN-DOWN",
+    7:"DOWN-UP",
+    8:"DOWN-LEFT",
+    9:"DOWN-RIGHT",
+    10:"UP-NOOP",
+    11:"UP-DOWN",
+    12:"UP-UP",
+    13:"UP-LEFT",
+    14:"UP-RIGHT",
+    15:"LEFT-NOOP",
+    16:"LEFT-DOWN",
+    17:"LEFT-UP",
+    18:"LEFT-LEFT",
+    19:"LEFT-RIGHT",
+    20:"RIGHT-NOOP",
+    21:"RIGHT-DOWN",
+    22:"RIGHT-UP",
+    23:"RIGHT-LEFT",
+    24:"RIGHT-RIGHT",
+    }
+
 
     # def get_reward_1(self,robot_number):
     #     if robot_number==0:
@@ -259,7 +293,6 @@ class WarehouseEnv(gym.Env):
     #     else:
     #         other_robot=0
     #     return self.orders_fulfilled[robot_number] - (self.orders_fulfilled[robot_number]-self.orders_fulfilled[other_robot])**2 - (self.distance[robot_number]-self.distance[other_robot])**2
-
 
 
 class WarehouseEnvRandomDefault(WarehouseEnv):

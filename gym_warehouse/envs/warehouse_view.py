@@ -291,7 +291,7 @@ class WarehouseView2D:
 class Warehouse:
 
     COMPASS = {
-        "STAY":(0,0),
+        "NOOP":(0,0),
         "IN":(0,1),
         "OUT":(0,-1),
         "LEFT":(-1,0),
