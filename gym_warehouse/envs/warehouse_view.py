@@ -177,9 +177,6 @@ class WarehouseView2D:
             self.screen.blit(self.warehouse_layer,(0,0))
 
             if mode == "human":
-                self.screen.blit(self.background,(0,0))
-                self.screen.blit(self.warehouse_layer,(0,0))
-
                 pygame.display.flip()
 
             return np.flipud(np.rot90(pygame.surfarray.array3d(pygame.display.get_surface())))
